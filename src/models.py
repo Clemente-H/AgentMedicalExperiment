@@ -154,38 +154,65 @@ class AdvisorModel(ModelClient):
                 raw_response = response.choices[0].message.content
             
             elif self.provider == "openrouter":
-                # Ajustar el formato para OpenRouter
+                # Configurar headers
+                headers = {
+                    "Authorization": f"Bearer {self.api_key}",
+                    "Content-Type": "application/json",
+                    "HTTP-Referer": "https://medical-image-ensemble.com",
+                    "X-Title": "Medical Image Analysis"  # Importante para tracking en OpenRouter
+                }
+                
+                # Estructura del payload
+                payload = {
+                    "model": self.model,
+                    "temperature": self.temperature,
+                    "max_tokens": 1000,
+                    "messages": [
+                        {
+                            "role": "user",
+                            "content": [
+                                {
+                                    "type": "text",
+                                    "text": prompt
+                                },
+                                {
+                                    "type": "image_url",
+                                    "image_url": {
+                                        "url": f"data:image/jpeg;base64,{image_b64}"
+                                    }
+                                }
+                            ]
+                        }
+                    ]
+                }
+                
+                # Hacer la solicitud con mayor timeout
                 response = requests.post(
                     "https://openrouter.ai/api/v1/chat/completions",
-                    headers={
-                        "Authorization": f"Bearer {self.api_key}",
-                        "Content-Type": "application/json",
-                        "HTTP-Referer": "https://medical-image-ensemble.com",
-                    },
-                    json={
-                        "model": self.model,
-                        "temperature": self.temperature,
-                        "max_tokens": 1000,
-                        "messages": [
-                            {
-                                "role": "user",
-                                "content": [
-                                    {
-                                        "type": "text",
-                                        "text": prompt
-                                    },
-                                    {
-                                        "type": "image_url",
-                                        "image_url": {
-                                            "url": f"data:image/jpeg;base64,{image_b64}"
-                                        }
-                                    }
-                                ]
-                            }
-                        ]
-                    }
+                    headers=headers,
+                    json=payload,
+                    timeout=120  # Aumentar timeout a 2 minutos
                 )
-                raw_response = response.json()['choices'][0]['message']['content']
+                
+                # Mejor manejo de errores
+                if response.status_code != 200:
+                    return {
+                        "raw_response": f"Error en OpenRouter (código {response.status_code}): {response.text}",
+                        "processing_time": time.time() - start_time,
+                        "error": True
+                    }
+                
+                response_json = response.json()
+                
+                # Validación más segura
+                if "choices" not in response_json or not response_json["choices"]:
+                    return {
+                        "raw_response": f"Respuesta de OpenRouter inválida: {response_json}",
+                        "processing_time": time.time() - start_time,
+                        "error": True
+                    }
+                
+                raw_response = response_json["choices"][0]["message"]["content"]
             
             elif self.provider == "grok":
                 response = self.client.chat.completions.create(

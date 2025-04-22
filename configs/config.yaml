@@ -3,7 +3,7 @@ models:
   advisors:
     claude:
       provider: claude
-      model: claude-3-5-sonnet-20241022
+      model: claude-3-7-sonnet-latest
       temperature: 0.1
     grok:
       provider: grok
@@ -11,7 +11,7 @@ models:
       temperature: 0.01
     deepseek:
       provider: openrouter
-      model: openrouter/deepseek-r1-vision
+      model: deepseek/deepseek-r1
       temperature: 0.1
   decision:
     provider: openai
