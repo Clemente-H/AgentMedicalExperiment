@@ -1,0 +1,64 @@
+# config.yaml
+models:
+  advisors:
+    claude:
+      provider: claude
+      model: claude-3-5-sonnet-20241022
+      temperature: 0.1
+    grok:
+      provider: grok
+      model: grok-2-vision-latest
+      temperature: 0.01
+    deepseek:
+      provider: openrouter
+      model: openrouter/deepseek-r1-vision
+      temperature: 0.1
+  decision:
+    provider: openai
+    model: gpt-4o
+    temperature: 0.1
+
+prompts:
+  advisor_template: |
+    Eres un experto en Medicina, basado en la imagen, debes responder la siguiente pregunta:
+    
+    {question}
+    
+    Da tu respuesta con el siguiente formato:
+    - Respuesta: Especifica la alternativa correcta (a/b/c/d)
+    - Justificacion: MUY brevemente explica tu respuesta
+    
+    Responde SOLO en formato JSON válido.
+
+  decision_template: |
+    Eres un juez experto en Medicina. Tres consejeros han analizado una imagen médica 
+    para responder la siguiente pregunta:
+    
+    {question}
+    
+    Consejero 1 (Claude) responde:
+    {claude_response}
+    
+    Consejero 2 (Grok) responde:
+    {grok_response}
+    
+    Consejero 3 (DeepSeek) responde:
+    {deepseek_response}
+    
+    Basado en estos análisis y tu propia interpretación de la imagen, determina cuál es la respuesta correcta.
+    
+    Da tu respuesta con el siguiente formato:
+    - Respuesta: Especifica la alternativa correcta (a/b/c/d)
+    - Justificacion: brevemente explica tu decisión
+    
+    Responde SOLO en formato JSON válido.
+
+dataset:
+  path: data/todas_las_preguntas.xlsx
+  image_base_path: ./data/
+
+logging:
+  verbose: true
+  save_raw_responses: true
+  summary_report: true
+  category_analysis: true

@@ -1,2 +1,4 @@
-data/*
+data/
+logs/
 .env
+.DS_Store
